@@ -65,16 +65,16 @@ class MultiWinApp:
         # the scene or any part of the UI.
         
         # parse bin, calib, and label files
-        point_cloud_frames = load_point_cloud_frames(lidar_file_path)
+        point_cloud_frames = kitti.load_point_cloud_frames(lidar_file_path,FRAME_NUM)
         print(len(point_cloud_frames), len(point_cloud_frames[0]),len(point_cloud_frames[0][0]))
-        matrix_tr_velo_to_cam_list, R_cam_to_rect_list = load_calib_list(calib_file_path)
+        matrix_tr_velo_to_cam_list, R_cam_to_rect_list = kitti.load_calib_list(calib_file_path,FRAME_NUM)
         print(len(matrix_tr_velo_to_cam_list), len(matrix_tr_velo_to_cam_list[0]),len(matrix_tr_velo_to_cam_list[0][0]))
         print(len(R_cam_to_rect_list), len(R_cam_to_rect_list[0]),len(R_cam_to_rect_list[0][0]))
-        class_ids_list, bbox3D_list = load_label_list(label_file_path, matrix_tr_velo_to_cam_list, R_cam_to_rect_list)
+        class_ids_list, bbox3D_list = kitti.load_label_list(label_file_path, matrix_tr_velo_to_cam_list, R_cam_to_rect_list,FRAME_NUM)
         print(len(class_ids_list), len(class_ids_list[0]))
         print(len(bbox3D_list), len(bbox3D_list[0]),len(bbox3D_list[0][0]), bbox3D_list[0][0])
    
-        axis_pcd = o3d.geometry.TriangleMesh.create_coordinate_frame(size=1.0, origin=[0, 0, 0])
+        #axis_pcd = o3d.geometry.TriangleMesh.create_coordinate_frame(size=1.0, origin=[0, 0, 0])
         #self.main_vis.add_geometry("axis", axis_pcd)
         
         # Initialize point cloud geometry
@@ -129,65 +129,6 @@ class MultiWinApp:
 
             if self.is_done:  # might have changed while sleeping
                 break
-
-
-def load_point_cloud_frames(directory):
-    point_clouds = []
-    index = 0;
-    for filename in sorted(os.listdir(directory)):
-        if filename.endswith('.bin'):  # Check for bin
-            file_path = os.path.join(directory, filename)
-            print(file_path)
-            pc_data = np.fromfile(file_path, "<f4")
-            pc_data = pc_data.reshape((-1, 4))
-            point_clouds.append(pc_data)
-            
-            index = index + 1;
-            
-            if index >= FRAME_NUM:
-                break
-                     
-    return point_clouds
-
-def load_label_list(directory,matrix_tr_velo_to_cam_list, R_cam_to_rect_list):
-    class_ids_list = []
-    bbox3D_list = []
-    index = 0;
-    for filename in sorted(os.listdir(directory)):
-        if filename.endswith('.txt'):  # Check for bin
-            file_path = os.path.join(directory, filename)
-            print(file_path)
-            
-            _, class_ids, bbox3D = kitti.parse_labels(file_path, matrix_tr_velo_to_cam_list[index], R_cam_to_rect_list[index])
-                        
-            class_ids_list.append(class_ids)
-            bbox3D_list.append(bbox3D)
-                        
-            index = index + 1;
-            if index >= FRAME_NUM:
-                break
-                     
-    return class_ids_list, bbox3D_list
-
-def load_calib_list(directory):
-    matrix_tr_velo_to_cam_list = []
-    R_cam_to_rect_list = []
-    index = 0;
-    for filename in sorted(os.listdir(directory)):
-        if filename.endswith('.txt'):  # Check for bin
-            file_path = os.path.join(directory, filename)
-            print(file_path)
-            
-            _, matrix_tr_velo_to_cam, R_cam_to_rect = kitti.parse_calib(file_path)
-               
-            matrix_tr_velo_to_cam_list.append(matrix_tr_velo_to_cam)
-            R_cam_to_rect_list.append(R_cam_to_rect)
-            
-            index = index + 1;
-            if index >= FRAME_NUM:
-                break
-                     
-    return matrix_tr_velo_to_cam_list, R_cam_to_rect_list
 
 
 def main():
