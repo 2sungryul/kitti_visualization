@@ -35,10 +35,11 @@ if not os.path.exists(ckpt_path):
 # load the parameters.
 pipeline.load_ckpt(ckpt_path=ckpt_path)
 
-test_split = dataset.get_split("test")
+test_split = dataset.get_split("training")
 
 # Prepare the visualizer 
-vis = Visualizer()
+#vis = Visualizer()
+vis = ml3d.vis.Visualizer()
 
 # Variable to accumulate the predictions
 data_list = []
@@ -54,13 +55,18 @@ for idx in tqdm(range(1)):
     # Run the inference
     result = pipeline.run_inference(data)[0]
     #print(result.__class__)
+    #print('result:',type(result))
+    #print(len(result))
+    #print(result)
+    #print('result[0]:',type(result[0]))
+
+    # Filter out results with low confidence
+    result = filter_detections(result)
+	#print(result.__class__)
     print('result:',type(result))
     print(len(result))
     print(result)
     print('result[0]:',type(result[0]))
-
-    # Filter out results with low confidence
-    #result = filter_detections(result)
     # Prepare a dictionary usable by the visulization tool
     pred = {
     "name": 'KITTI' + '_' + str(idx),
